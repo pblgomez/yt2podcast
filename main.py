@@ -68,6 +68,8 @@ def download_videos(urls, subs, vids):
     y = 0
     for item in rss.entries:
       if y < vids:
+
+        from secrets import date_after
         # We download the video using youtube-dl
         p=subprocess.Popen(
           ['youtube-dl',item['link'],
@@ -76,7 +78,7 @@ def download_videos(urls, subs, vids):
           '--add-metadata',
           '--format','best+best',
           '--download-archive','Videos/archive.txt',
-          '--dateafter','20200505']
+          '--dateafter',date_after]
         )
         p.wait()
 
