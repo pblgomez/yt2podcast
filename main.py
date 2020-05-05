@@ -11,6 +11,23 @@ import datetime
 import subprocess
 import urllib
 from secrets import vids
+import _thread
+from pathlib import Path
+import time, sys
+
+
+def delete_old(author):
+  print("Cheking for old files in :"+author)
+  from secrets import keep_newer_than
+  path = r"Videos/"+author
+  now = time.time()
+  for f in os.listdir(path):
+    f = os.path.join(path, f)
+    if os.stat(f).st_mtime < now - keep_newer_than * 86400:
+      if os.path.isfile(f):
+        print("Deleting: "+f)
+        # os.remove(os.path.join(path, f))
+        os.remove(f)
 
 
 
@@ -41,6 +58,10 @@ def download_videos(urls, subs, vids):
     rss = fp.parse(urls[i])
 
     # print(rss.entries[i].author_detail)
+
+    # Delete old files
+    delete_old(rss.feed.author)
+
     #Create rss
     create_rss(rss.feed.author, rss.feed.link)
 
@@ -48,7 +69,15 @@ def download_videos(urls, subs, vids):
     for item in rss.entries:
       if y < vids:
         # We download the video using youtube-dl
-        p=subprocess.Popen(['youtube-dl',item['link'],'--output','Videos/%(uploader)s/%(title)s.%(ext)s','--ignore-errors','--add-metadata','--format','best+best','--download-archive','Videos/archive.txt','--dateafter','20200101'])
+        p=subprocess.Popen(
+          ['youtube-dl',item['link'],
+          '--output','Videos/%(uploader)s/%(title)s.%(ext)s',
+          '--ignore-errors',
+          '--add-metadata',
+          '--format','best+best',
+          '--download-archive','Videos/archive.txt',
+          '--dateafter','20200501']
+        )
         p.wait()
 
         # We capture the real filename on disk
@@ -213,6 +242,13 @@ urls, titles, subs = substract_subs(inputfile)
 
 
 
-download_videos(urls, subs, vids)
+# Start the web server
+# p=subprocess.Popen(
+#   ['python','http_server.py'],
+#             stdout=subprocess.PIPE,
+#             stderr=subprocess.STDOUT)
 
-start_server()
+
+
+
+download_videos(urls, subs, vids)
