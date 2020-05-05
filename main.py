@@ -26,9 +26,7 @@ def delete_old(author):
     if os.stat(f).st_mtime < now - keep_newer_than * 86400:
       if os.path.isfile(f):
         print("Deleting: "+f)
-        # os.remove(os.path.join(path, f))
         os.remove(f)
-
 
 
 
@@ -59,11 +57,13 @@ def download_videos(urls, subs, vids):
 
     # print(rss.entries[i].author_detail)
 
+    #Create rss
+    create_rss(rss.feed.author, rss.feed.link)
+
+
     # Delete old files
     delete_old(rss.feed.author)
 
-    #Create rss
-    create_rss(rss.feed.author, rss.feed.link)
 
     y = 0
     for item in rss.entries:
@@ -76,7 +76,7 @@ def download_videos(urls, subs, vids):
           '--add-metadata',
           '--format','best+best',
           '--download-archive','Videos/archive.txt',
-          '--dateafter','20200501']
+          '--dateafter','20200505']
         )
         p.wait()
 
@@ -203,23 +203,6 @@ def finish_rss(author):
     rss_out.write(rss_finish_content)
 
 
-def start_server():
-  from secrets import port
-
-  web_dir = os.path.join(os.path.dirname(__file__), 'Videos')
-  os.chdir(web_dir)
-
-  handler = http.server.SimpleHTTPRequestHandler
-
-  with socketserver.TCPServer(("", port), handler) as httpd:
-      print("Server started at port:" + str(port))
-      httpd.serve_forever()
-  # Handler = http.server.SimpleHTTPRequestHandler
-  # httpd = socketserver.TCPServer(("", port), Handler)
-  # print("serving at port", port)
-  # httpd.serve_forever()
-
-
 ### Arguments
 parser = argparse.ArgumentParser(
     description='Converts youtube subscriptions opml to rss podcast')
@@ -238,17 +221,8 @@ else:
   inputfile = 'subscription_manager.opml'
 ##################################
 
+
 urls, titles, subs = substract_subs(inputfile)
-
-
-
-# Start the web server
-# p=subprocess.Popen(
-#   ['python','http_server.py'],
-#             stdout=subprocess.PIPE,
-#             stderr=subprocess.STDOUT)
-
-
 
 
 download_videos(urls, subs, vids)
